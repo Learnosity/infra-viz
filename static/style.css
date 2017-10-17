@@ -1,0 +1,25 @@
+body { 
+  font: 14px helvetica neue, helvetica, arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+#cy {
+  height: 100%;
+  width: 80%;
+  position: absolute;
+  left: 20%;
+  top: 0;
+  border-left: 1px solid silver;
+}
+
+#info{
+	border-top: 1px solid silver;
+	width: 20%;
+
+}
+
+#content{
+	border-top: 1px solid silver;
+	width: 20%;
+}

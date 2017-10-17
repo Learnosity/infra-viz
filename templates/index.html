@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link href="static/style.css" rel="stylesheet" />
+<meta charset=utf-8 />
+<meta name="viewport" content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui">
+<title>Infra Dependency Graphs</title>
+<script src="static/vendor/cytoscape/cytoscape.js"></script>
+<script src="static/vendor/dagre-master/dist/dagre.js"></script>
+<script src="static/vendor/cytoscape.js-dagre-master/cytoscape-dagre.js"></script>
+<script src="static/vendor/jquery/jquery-3.2.1.min.js"></script>
+<script src="static/vendor/papaparse-master/papaparse.min.js"></script>
+</head>
+<body>
+
+<button onclick="switchLayout('dagre')">Dagre</button>
+<button onclick="switchLayout('cose')">Cose</button>
+
+<div id="info"></div>
+
+<div id="content">Content Here:</div>
+
+<div id="cy"></div>
+<!-- Load appplication code at the end to ensure DOM is loaded -->
+
+
+<script>
+elements = {};
+</script>
+<script src="static/code.js"></script>
+
+<script>
+
+nodes='data/nodes5.csv'
+edges='data/edges5.csv'
+
+processNodes(nodes);
+
+
+
+
+function processNodes(nodes){
+    Papa.parse(nodes, {
+        download: true,
+        header: true,
+        complete: function(results) {
+            // console.log(results);
+            addElements(results.data,'nodes')
+            processEdges('data/edges5.csv');
+        }
+    });
+}
+
+
+function processEdges(edges){
+    Papa.parse(edges, {
+        download: true,
+        header: true,
+        complete: function(results) {
+            // console.log(results);
+            addElements(results.data,'edges')
+            dorender()
+        }
+    });
+}
+
+
+
+/**
+*
+* @nodes: array of nodes to be added
+* @type: nodes | edges
+*/
+function addElements(nodes,type){
+  
+    console.log('1');
+    for(node of nodes){
+       
+        // node['id'] = node.name;
+
+        // console.log(node);
+
+        switch(type){
+
+            case "nodes": 
+                //Skip blank nodes
+                if(node['name'] == undefined) continue;
+
+            // type,name,description,image,reference,public_or_private,region
+                cy.add(
+                    { group: 'nodes', 
+                        data: {
+                                id: node['type'] +'_'+ node['name'],
+                                name: node['name'],
+                                type: node['type'],
+                                region: node['region'],
+                                weight: node['weight'] * 75
+                    }});
+                break;
+            case "edges":
+            //from_type,from_name,edge,to_type,to_name,weight
+                cy.add(
+                    { group: 'edges',
+                         data: { 
+                                
+                                source: node['from_type'] +'_'+ node['from_name'],
+                                type: node['edge'],
+                                target: node['to_type'] +'_'+ node['to_name'],
+                                weight: node['weight']
+                    }});
+                break;
+            default:
+                console.log('type: ',type,' not supported.');
+                break;
+        }
+    }
+        //     { group: 'nodes', data: { id: '". $data[1] ."', name: '".$data[1]."', weight: 75, type: '".$data[0]."', region: '".$data[6]."' }}
+        //   echo "cy.add();";
+        // }
+}
+
+
+
+function dorender(){
+    var defaults = {
+      // dagre algo options, uses default value on undefined
+      nodeSep: undefined, // the separation between adjacent nodes in the same rank
+      edgeSep: undefined, // the separation between adjacent edges in the same rank
+      rankSep: undefined, // the separation between adjacent nodes in the same rank
+      rankDir: undefined, // 'TB' for top to bottom flow, 'LR' for left to right
+      minLen: function( edge ){ return 1; }, // number of ranks to keep between the source and target of the edge
+      edgeWeight: function( edge ){ return 1; }, // higher weight edges are generally made shorter and straighter than lower weight edges
+
+      // general layout options
+      fit: true, // whether to fit to viewport
+      padding: 30, // fit padding
+      animate: false, // whether to transition the node positions
+      animationDuration: 500, // duration of animation in ms if enabled
+      animationEasing: undefined, // easing of animation if enabled
+      boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+      ready: function(){}, // on layoutready
+      stop: function(){} // on layoutstop
+    };
+
+    console.log('layout cose');
+    switchLayout('cose');
+
+
+    //Limit the zoom in and out for usability
+    cy.minZoom(0.1);
+    cy.maxZoom(3);
+
+    // n = cy.nodes()
+
+    // cy.nodes().forEach( function(node){
+    //     console.log(node.id()); 
+    //     console.log(node.successors());
+    // })
+
+
+    //Loop through each node and set it's successor, predecessors, and combination
+    cy.nodes().forEach( function(node){
+        successorcount = 0;
+        predecessorcount = 0;
+        // console.log();
+        node.successors().forEach(function(successor){
+          successorcount ++;
+          // console.log(successor.data('name'));
+        });
+        node.predecessors().forEach(function(predecessor){
+          predecessorcount ++;
+          // console.log(successor.data('name'));
+        });
+
+        node.data('predecessorcount',predecessorcount);
+        node.data('successorcount',successorcount);
+        node.data('importance',predecessorcount);
+
+         // console.log(node.id(),':',successorcount,':',predecessorcount, ':',predecessorcount+successorcount); 
+        
+    })
+
+    //Root nodes are the starting points
+
+    cy.nodes().roots().forEach(function(node){
+      // console.log('Root:',node.id());
+      node.data('root',1);
+    });
+
+    //Leaf nodes have no lower dependencies
+    cy.nodes().leaves().forEach(function(node){
+      // console.log('Leaf:',node.id());
+      node.data('leaf',1);
+
+    });
+
+
+
+    function switchLayout(newLayout){
+      switch(newLayout){
+        case 'dagre':
+          layout = cy.layout({name: 'dagre', rankDir: 'LR'});
+          layout.run();
+          break;
+        case 'cose':
+          layout = cy.layout({name: 'cose'});
+          layout.run();
+          break;
+
+        default:
+          console.log('Layout not supported:'+newLayout)
+      }
+    }
+
+    //Flag a node as dead and colour all related nodes.
+    // cy.nodes('node[name = "RDS: IBK Slaves"]').forEach(function(node){
+    //   console.log('Kill:',node.id());
+    //   node.data('dead',1);
+
+    //   //Loop through all nodes and edges above and mark as dead
+    //   node.predecessors().forEach(function(predecessor){
+    //       predecessor.data('dead',1);
+    //       // console.log(successor.data('name'));
+    //   });
+    // });
+
+    function toggleDeadNode(node){
+      // console.log('Kill:',node.id());
+      var newState = 0;
+      if(node.data('dead') != 1){
+        newState = 1
+      }  
+
+      node.data('dead',newState);
+    }
+
+    function updateDeadNodePredecessors(){
+      //Clear all partly dead
+      cy.nodes().forEach(function(node){
+        node.data('partlydead',0);
+      });
+
+
+      // Flag all current partly dead
+      cy.nodes('node[dead = 1]').predecessors().forEach(function(predecessor){
+          predecessor.data('partlydead',1);
+      });
+
+    }
+
+
+    function renderNodeInfo(el){
+      target = $('#info').empty();
+
+      var content = "<b>Node info:</b><br>\n";
+
+      data = el.data()
+      for(key in data){
+         content += key +":" + data[key]+ "<br>\n";
+      }
+      target.append(content);
+    }
+
+    function renderDeadNodeTable(){
+      target = $('#content').empty();
+
+      var content = "<b>Dead Nodes:</b><br>\n";
+      // Flag all current partly dead
+      cy.nodes('node[dead = 1]').forEach(function(node){
+          // node.data('partlydead',1);
+          content += node.id() + "<br>\n";
+      });
+
+      content += "<b>Affected Nodes:</b><br>\n";
+
+      cy.nodes('node[partlydead = 1]').forEach(function(node){
+          // node.data('partlydead',1);
+          content += node.id() + "<br>\n";
+      });
+
+      target.append(content);
+
+      // cy.nodes('node[dead = 1]').predecessors().forEach(function(predecessor){
+      //     predecessor.data('partlydead',1);
+      // });
+
+
+    }
+
+
+    //Ad an event handler
+    // cy.nodes().on('click', function(evt){
+    //   console.log( 'tap ' + evt.target.id() );
+    // });
+
+
+
+    cy.on('tap', function(event){
+      // target holds a reference to the originator
+      // of the event (core or element)
+      var evtTarget = event.target;
+
+      if( evtTarget === cy ){
+          // console.log('tap on background');
+      } else if (evtTarget.isNode()){
+
+        renderNodeInfo(evtTarget);
+        // console.log('tap on node element');
+        toggleDeadNode(evtTarget);
+        updateDeadNodePredecessors();
+        renderDeadNodeTable();
+
+      } else if (evtTarget.isEdge()){
+        // console.log('tap on edge element');
+        renderNodeInfo(evtTarget);
+
+      } else {
+        // console.log('tap on unknown element');
+      }
+    });
+
+    // console.log(n);
+    // for(var node in n){
+    //   console.log('Node: '+node.isNode());
+    // }
+
+    // roots = n.roots();
+    // console.log(roots.length);
+
+    // leaves = n.leaves().data('weight');
+    // console.log(leaves);
+
+    // for(var leaf in leaves){
+    //   console.log('Leaf: '+leaf);
+    // }
+
+
+
+    // // n1 = cy.nodes('#URL: Questions');
+    // n1 = cy.nodes("[name='URL\: Questions']");
+
+    // console.log(n1);
+
+    // console.log(n1.successors());
+    // console.log(n1.predecessors());
+}
+</script>
+
+
+</body>
+</html>

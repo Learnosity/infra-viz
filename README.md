@@ -1,2 +1,75 @@
 # infra-viz
-Infrastructure Visualisation tool
+Infrastructure dependency visualisation
+
+
+## Usage
+
+There are 2 parts to this
+
+1. Collect the data from AWS
+
+For this you will need read-only access to the AWS environment.
+
+Then run:
+$ python3 collect.py
+
+Once this has run you can explore the data.
+
+
+2. View and explore the visualised data:
+
+$ python3 server.py
+
+Browse to:
+http://127.0.0.1:5000
+
+
+## Roadmap
+
+### Frontend/JS
+- [X] Migrate core to python 
+- [ ] Add search field to find nodes
+- [ ] Add info on each of the nodes
+- [ ] Add icon for type of each node
+- [ ] Make layouts much better
+- [ ] Filter to unconnected nodes
+- [ ] General filtering of nodes
+- [ ] Add ability to filter by region
+- [ ] Add ability to search for nodes
+- [X] Control how far it can zoom out or in
+
+### Collect Script
+- [X] Move to infra-viz project
+- [X] Add support for RDS
+- [X] Ability to create a dependency graph for infraviz
+- [X] make DNS Cacheable
+- [X] Add redshift
+- [X] Add elasticache
+- [X] Add cloudfront
+- [X] Add ASGs
+- [X] Fix up memcache linkages
+- [X] Deduplicate nodes
+- [ ] Publish as open source
+- [ ] Add click options - http://click.pocoo.org/6/
+- [ ] Command line option for regions etc
+- [ ] Add mode for exceptions only
+- [ ] Add IP addresses for machines
+- [ ] Add ability to flush all or a single resource type
+- [ ] Ability to link in non AWS data - eg internal config - maybe via CSV or seperate file
+- [ ] link up cloudfront to ELB's and S3
+
+
+
+## Dependencies:
+
+The infra-viz project utilised the following open source or free resources:
+
+* Cytoscape JS library - http://js.cytoscape.org/  MIT licence
+* Dagre - https://github.com/cpettitt/dagre/wiki  MIT licence 
+* JQuery - https://jquery.org MIT licence
+* PapaParse - http://papaparse.com MIT licence
+* AWS Simple icons - https://aws.amazon.com/architecture/icons/  Permissive licence
+
+ 
+
+
