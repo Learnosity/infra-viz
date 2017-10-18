@@ -28,6 +28,7 @@ http://127.0.0.1:5000
 
 ### Frontend/JS
 - [X] Migrate core to python 
+- [X] Control how far it can zoom out or in
 - [ ] Add search field to find nodes
 - [ ] Add info on each of the nodes
 - [ ] Add icon for type of each node
@@ -35,8 +36,7 @@ http://127.0.0.1:5000
 - [ ] Filter to unconnected nodes
 - [ ] General filtering of nodes
 - [ ] Add ability to filter by region
-- [ ] Add ability to search for nodes
-- [X] Control how far it can zoom out or in
+- [ ] Add ability to search for nodesx
 
 ### Collect Script
 - [X] Move to infra-viz project
@@ -49,7 +49,7 @@ http://127.0.0.1:5000
 - [X] Add ASGs
 - [X] Fix up memcache linkages
 - [X] Deduplicate nodes
-- [ ] Publish as open source
+- [X] Publish as open source
 - [ ] Add click options - http://click.pocoo.org/6/
 - [ ] Command line option for regions etc
 - [ ] Add mode for exceptions only
@@ -58,6 +58,17 @@ http://127.0.0.1:5000
 - [ ] Ability to link in non AWS data - eg internal config - maybe via CSV or seperate file
 - [ ] link up cloudfront to ELB's and S3
 
+
+## Screenshots
+
+ASG with 10 nodes: 
+![alt text](https://github.com/Learnosity/infra-viz/raw/master/screenshots/ASG_with_10_nodes.png "ASG with 10 nodes")
+
+DNS with different weights: 
+![alt text](https://github.com/Learnosity/infra-viz/raw/master/screenshots/DNS_with_different_weights.png "DNS with different weights")
+
+Weighted DNS pointing to ASG nodes: 
+![alt text](https://github.com/Learnosity/infra-viz/raw/master/screenshots/Weighted_DNS_pointing_to_ASG_nodes.png "Weighted DNS pointing to ASG nodes")
 
 
 ## Dependencies:
@@ -69,7 +80,8 @@ The infra-viz project utilised the following open source or free resources:
 * JQuery - https://jquery.org MIT licence
 * PapaParse - http://papaparse.com MIT licence
 * AWS Simple icons - https://aws.amazon.com/architecture/icons/  Permissive licence
-
+* Flask - http://flask.pocoo.org/ - BSD licence
+* Python 3 - https://docs.python.org/3/license.html - PSF License Agreement 
  
 
 
