@@ -538,6 +538,10 @@ def main():
     # used for "global" AWS services
     region = 'us-east-1'
 
+    nodes_filename = 'data/nodes.csv'
+    edges_filename = 'data/edges.csv'
+
+
     # -------------------------------------------------------------------------
     # Route53
     # -------------------------------------------------------------------------
@@ -567,10 +571,6 @@ def main():
         process_sqs(region, nodes, edges)
         
 
-    # nodes = dedup(nodes)
-
-    nodes_filename = 'data/nodes5.csv'
-    edges_filename = 'data/edges5.csv'
 
     write_nodes_csv(nodes, nodes_filename)
     write_edges_csv(edges, edges_filename)
