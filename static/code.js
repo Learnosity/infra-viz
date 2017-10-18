@@ -87,7 +87,7 @@ var cy = window.cy = cytoscape({
       css: {
         'opacity': 0.2,
         'line-color' : 'rgb(0,0,0)',
-        'source-arrow-shape': 'tee',
+        'source-arrow-shape': 'none',
         'source-arrow-color' : 'rgb(0,0,0)',
         'target-arrow-shape': 'triangle',
         'target-arrow-color' : 'rgb(0,0,0)',
