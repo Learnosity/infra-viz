@@ -1,11 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
-import boto3
+import logging
 import json
 import csv
 from datetime import date, datetime
 from hashlib import sha1
-from os import path
-import logging
+
+import boto3
+
 
 logger = logging.getLogger('main')
 logger.setLevel(logging.DEBUG)
@@ -36,40 +40,34 @@ edge_fields = [
 
 
 def make_dirs(folder):
+    ''' Make directories and subdirectories for a location '''
     if not os.path.exists(folder):
         os.makedirs(folder)
 
 def write_json_file(filename, obj):
-    with open(filename, 'w+') as f:
-        f.write(json.dumps(obj, default=json_serial))
-        logger.debug("wrote file: {}".format(filename))
+    ''' Save an object as a json file '''
+    with open(filename, 'w+') as file:
+        file.write(json.dumps(obj, default=json_serial))
+        logger.debug("wrote file: %s", filename)
 
 
 def read_json_file(filename):
-    with open(filename, 'r') as f:
-        obj = json.loads(f.read())
-        logger.debug("read file: {}".format(filename))
+    ''' Read a json file back as an object '''
+    with open(filename, 'r') as file:
+        obj = json.loads(file.read())
+        logger.debug("read file: %s", filename)
         return obj
 
 
-def write_nodes_csv(nodes, filename):
-    nodes_arr = nodes.values()
-    
+def write_csv(nodes, filename, fieldnames):
+    ''' Write out all the nodes to a CSV File '''
+
     with open(filename, 'w+', newline='') as csvfile:
-        w = csv.DictWriter(csvfile, fieldnames=node_fields)
-        w.writeheader()
-        w.writerows(nodes_arr)
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(nodes)
 
-    logger.debug("wrote file: {}".format(filename))
-
-
-def write_edges_csv(nodes, filename):
-    with open(filename, 'w+', newline='') as csvfile:
-        w = csv.DictWriter(csvfile, fieldnames=edge_fields)
-        w.writeheader()
-        w.writerows(nodes)
-
-    logger.debug("wrote file: {}".format(filename))
+    logger.debug("wrote file: %s", filename)
 
 
 def json_serial(obj):
@@ -84,45 +82,38 @@ def json_serial(obj):
 
 
 def fmt_dns(name):
-    """
-    Remove any trailing dots from a dns name and format to lower case
-    """
+    ''' Remove any trailing dots from a dns name and format to lower case '''
     return name.lower().rstrip('.').replace('dualstack.', '')
 
 
 def new_node(**kwargs):
-    """
-    Creates a new node and will populate the fields that match in kwargs
-    """
+    ''' Creates a new node and will populate the fields that match in kwargs '''
     return {key: kwargs.get(key, None) for key in node_fields}
 
 
 def new_edge(**kwargs):
-    """
-    Creates a new edge and will populate the fields that match in kwargs
-    """
+    ''' Creates a new edge and will populate the fields that match in kwargs '''
     return {key: kwargs.get(key, None) for key in edge_fields}
 
 
-def add_update_node(dict,node):
-    """
+def add_update_node(existing_nodes,node):
+    '''
     Adds a node - or increments the weight if a duplicate
-    """
+    '''
     node_name = node['type']+'_'+node['name']
-    if(node_name in dict):
-        dict[node_name]['weight'] += 1
+    if node_name in existing_nodes:
+        existing_nodes[node_name]['weight'] += 1
     else:
-        dict[node_name] = node
-        dict[node_name]['weight'] = 1 
-    return
+        existing_nodes[node_name] = node
+        existing_nodes[node_name]['weight'] = 1
 
 
 def query_aws(api, method, region, cached=True, **kwargs):
-    """
+    '''
     Query AWS API using api and method to call for a given region
     Cache the results to the filesystem for faster re-run. Can flush cache
     with flag when required
-    """
+    '''
     # build up the filename
     filename = [api, method, region]
 
@@ -130,7 +121,7 @@ def query_aws(api, method, region, cached=True, **kwargs):
     filename.append(sha1(str(kwargs).encode()).hexdigest())
 
     # construct filename and add path
-    filename = path.join('cache', '-'.join(filename)) + '.json'
+    filename = os.path.join('cache', '-'.join(filename)) + '.json'
 
     try:
         # look for a cache file, return result if found
@@ -177,7 +168,7 @@ def process_dns_records(zone_id, region, nodes, edges):
             record.get('AliasTarget', {}).get('DNSName', '')
         )
 
-        logger.debug('  - {} {}'.format(name, ns_type))
+        logger.debug('  - %s %s',name, ns_type)
 
         if ns_type in ['CNAME', 'A']:
             # add name node to the nodes
@@ -530,11 +521,13 @@ def process_s3(region, nodes, edges):
 
 
 def main():
+    ''' Main function to kick it all off '''
+
     nodes = {}
     edges = []
 
 
-    regionList = [
+    region_list = [
         'us-west-1', 'us-west-2', 'us-east-1', 'us-east-2', 'ap-southeast-2'
         # 'us-west-1'
     ]
@@ -566,8 +559,8 @@ def main():
     # -------------------------------------------------------------------------
     # Regions loop
     # -------------------------------------------------------------------------
-    for region in regionList:
-        logger.info('** {}'.format(region))
+    for region in region_list:
+        logger.info('** %s', region)
 
         process_ec2s(region, nodes, edges)
         process_elbs(region, nodes, edges)
@@ -576,11 +569,9 @@ def main():
         process_elasticache(region, nodes, edges)
         process_asgs(region, nodes, edges)
         process_sqs(region, nodes, edges)
-        
 
-
-    write_nodes_csv(nodes, nodes_filename)
-    write_edges_csv(edges, edges_filename)
+    write_csv(nodes.values(), nodes_filename, node_fields)
+    write_csv(edges, edges_filename, edge_fields)
 
 
 if __name__ == "__main__":
