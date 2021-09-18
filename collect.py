@@ -1,3 +1,4 @@
+import os
 import boto3
 import json
 import csv
@@ -33,6 +34,10 @@ edge_fields = [
     'weight'
 ]
 
+
+def make_dirs(folder):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
 def write_json_file(filename, obj):
     with open(filename, 'w+') as f:
@@ -511,10 +516,8 @@ def process_s3(region, nodes, edges):
         region
     )
 
-    logger.info('***** {}'.format(region))
-
     for bucket in records:
-        logger.info('*****&* {}'.format(region))
+        # logger.info('*****&* {}'.format(region))
         add_update_node(
             nodes,
             new_node(
@@ -530,6 +533,7 @@ def main():
     nodes = {}
     edges = []
 
+
     regionList = [
         'us-west-1', 'us-west-2', 'us-east-1', 'us-east-2', 'ap-southeast-2'
         # 'us-west-1'
@@ -541,6 +545,9 @@ def main():
     nodes_filename = 'data/nodes.csv'
     edges_filename = 'data/edges.csv'
 
+    # Make dirs for storage
+    make_dirs('data')
+    make_dirs('cache')
 
     # -------------------------------------------------------------------------
     # Route53

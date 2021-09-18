@@ -47,7 +47,7 @@ function processNodes(nodes){
         complete: function(results) {
             // console.log(results);
             addElements(results.data,'nodes')
-            processEdges('data/edges5.csv');
+            processEdges('data/edges.csv');
         }
     });
 }
@@ -100,7 +100,7 @@ function addElements(nodes,type){
                                 source: node['from_type'] +'_'+ node['from_name'],
                                 type: node['edge'],
                                 target: node['to_type'] +'_'+ node['to_name'],
-                                weight: node['weight']
+                                weight: 1
                     }});
                 break;
             default:
