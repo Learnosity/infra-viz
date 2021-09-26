@@ -233,6 +233,16 @@ def process_cloudfront(region, nodes, edges):
             )
         )
 
+        # Add the DNS node for it that is auto created
+        add_update_node(
+            nodes,
+            new_node(
+                type='dns',
+                name=fmt_dns(instance['DomainName']),
+                description='A',
+            )
+        )
+
         # add an edge for the DNS cloudfront
         edges.append(
             new_edge(
@@ -375,6 +385,7 @@ def process_rds(region, nodes, edges):
             ]
         )
 
+        # Add the RDS Node
         add_update_node(
             nodes,
             new_node(
@@ -384,6 +395,29 @@ def process_rds(region, nodes, edges):
                 region=region
             )
         )
+
+        # Add the DNS node for it
+        add_update_node(
+            nodes,
+            new_node(
+                type='dns',
+                name=fmt_dns(rds['Endpoint']['Address']),
+                description='A',
+            )
+        )
+
+        # add an edge for the RDS to DNS link
+        edges.append(
+            new_edge(
+                from_type='dns',
+                from_name=fmt_dns(rds['Endpoint']['Address']),
+                edge='depends',
+                to_type='rds',
+                to_name=name,
+                weight=1
+            )
+        )
+
 
 
 def process_asgs(region, nodes, edges):
