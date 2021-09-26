@@ -233,6 +233,33 @@ def process_cloudfront(region, nodes, edges):
             )
         )
 
+        # add an edge for the DNS cloudfront
+        edges.append(
+            new_edge(
+                from_type='dns',
+                from_name=fmt_dns(instance['DomainName']),
+                edge='depends',
+                to_type='cloudfront',
+                to_name=fmt_dns(instance['DomainName']),
+                weight=1
+            )
+        )
+
+        # Loop through each of the origins and link them to endpoints
+        for origin in instance['Origins']['Items']:
+            edges.append(
+                new_edge(
+                    from_type='cloudfront',
+                    from_name=fmt_dns(instance['DomainName']),
+                    edge='depends',
+                    to_type='dns',
+                    to_name=fmt_dns(origin['DomainName']),
+                    weight=1
+                )
+            )
+
+
+
 
 def process_ec2s(region, nodes, edges):
     """
