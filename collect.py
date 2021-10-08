@@ -389,6 +389,63 @@ def process_elbs(region, nodes, edges):
                 )
             )
 
+def process_elbsv2(region, nodes, edges):
+    """
+    Find all the ELB nodes
+    """
+    records = query_aws('elbv2', 'describe_load_balancers', region, cached=False)
+
+    print("ELBS")
+    print(records)
+    for elb in records['LoadBalancers']:
+        name = fmt_dns(elb['DNSName'])
+
+        print(elb)
+        add_update_node(
+            nodes,
+            new_node(
+                type='elb',
+                name=name,
+                description=elb['LoadBalancerName'],
+                region=region
+            )
+        )
+
+        # Add the DNS node for it
+        add_update_node(
+            nodes,
+            new_node(
+                type='dns',
+                name=fmt_dns(elb['DNSName']),
+                description='A',
+            )
+        )
+
+        # add an edge for the RDS to DNS link
+        edges.append(
+            new_edge(
+                from_type='dns',
+                from_name=fmt_dns(elb['DNSName']),
+                edge='depends',
+                to_type='elb',
+                to_name=name,
+                weight=1
+            )
+        )
+
+        # TODO v2 load balancers need to support target groups etc
+        # Add Edges - of dependent instances
+        # for instances in elb['Instances']:
+        #     edges.append(
+        #         new_edge(
+        #             from_type='elb',
+        #             from_name=name,
+        #             edge='depends',
+        #             to_type='ec2',
+        #             to_name=instances['InstanceId'],
+        #             weight=1
+        #         )
+        #     )
 
 def process_rds(region, nodes, edges):
     """
@@ -422,8 +479,9 @@ def process_rds(region, nodes, edges):
             nodes,
             new_node(
                 type='dns',
-                name=fmt_dns(rds['Endpoint']['Address']),
+                name=name,
                 description='A',
+                region=region
             )
         )
 
@@ -431,7 +489,7 @@ def process_rds(region, nodes, edges):
         edges.append(
             new_edge(
                 from_type='dns',
-                from_name=fmt_dns(rds['Endpoint']['Address']),
+                from_name=name,
                 edge='depends',
                 to_type='rds',
                 to_name=name,
@@ -646,6 +704,7 @@ def main():
 
         process_ec2s(region, nodes, edges)
         process_elbs(region, nodes, edges)
+        process_elbsv2(region, nodes, edges)
         process_rds(region, nodes, edges)
         process_redshift(region, nodes, edges)
         process_elasticache(region, nodes, edges)
