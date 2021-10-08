@@ -310,19 +310,40 @@ def process_ec2s(region, nodes, edges):
                 )
             )
 
-            # add the private ip edge
-            edges.append(
-                new_edge(
-                    from_type='ec2',
-                    from_name=instance['InstanceId'],
-                    edge='depends',
-                    to_type='dns',
-                    to_name=instance['PrivateIpAddress'],
-                    weight=1
-                )
-            )
+            # Removed Private IP - as not adding much value at this point
+            # add_update_node(
+            #     nodes,
+            #     new_node(
+            #         type='IP',
+            #         name=instance['PrivateIpAddress'],
+            #         description=description,
+            #         region=region
+            #     )
+            # )
+
+            # # add the private ip edge
+            # edges.append(
+            #     new_edge(
+            #         from_type='ec2',
+            #         from_name=instance['InstanceId'],
+            #         edge='depends',
+            #         to_type='IP',
+            #         to_name=instance['PrivateIpAddress'],
+            #         weight=1
+            #     )
+            # )
 
             if instance.get('PublicIpAddress'):
+                add_update_node(
+                    nodes,
+                    new_node(
+                        type='dns',
+                        name=instance['PublicIpAddress'],
+                        description=description,
+                        region=region
+                    )
+                )
+                
                 # add the public ip edge
                 edges.append(
                     new_edge(
