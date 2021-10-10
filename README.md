@@ -85,3 +85,46 @@ The infra-viz project utilised the following open source or free resources:
  
 
 
+Linked Entities
+
+DNS
+ - DNS Node
+ - Edge Link via A record, CNAME and ALIAS
+
+Cloudfront
+ - Cloudfront Node
+ - DNS Node
+ - Edge between Cloudfront and DNS
+
+RDS
+ - RDS Node
+ - DNS Node
+ - Edge between DNS and RDS
+ - Replicas - Node and Edge
+
+Elasticache
+ - Elasticache Node
+ - DNS Node
+ - Edge between DNS and Elasticache
+ - Replicas? - Node and Edge
+
+Redshift
+ - Redshift Node
+ - DNS Node
+ - Edge between DNS and Redshift
+
+ALB
+ - ALB Node
+ - DNS Node
+ - Edge between DNS and ALB
+ - Edge betetween Target Group and ALB
+
+Target Groups
+ - Target Group Nodes (ARN)
+ - Edge to Load Balancer ARN
+
+ASG
+ - ASG Node
+ - Edge to Target Group ARN Node
+ - Edge to Instances
+
