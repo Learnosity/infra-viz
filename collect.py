@@ -694,7 +694,7 @@ def main():
 
 
     region_list = [
-        'us-west-1', 'us-west-2', 'us-east-1', 'us-east-2', 'ap-southeast-2'
+        'us-west-1', 'us-west-2', 'us-east-1', 'eu-west-1', 'ap-southeast-2'
         # 'us-west-1'
     ]
 
