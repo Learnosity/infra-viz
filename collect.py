@@ -26,7 +26,8 @@ node_fields = [
     'type',
     'name',
     'description',
-    'weight'
+    'weight',
+    'counter'
 ]
 
 edge_fields = [
@@ -98,14 +99,15 @@ def new_edge(**kwargs):
 
 def add_update_node(existing_nodes,node):
     '''
-    Adds a node - or increments the weight if a duplicate
+    Adds a node to the array - or increments the weight if a duplicate
     '''
     node_name = node['type']+'_'+node['name']
     if node_name in existing_nodes:
-        existing_nodes[node_name]['weight'] += 1
+        existing_nodes[node_name]['counter'] += 1
     else:
         existing_nodes[node_name] = node
-        existing_nodes[node_name]['weight'] = 1
+        existing_nodes[node_name]['counter'] = 1
+
 
 
 def query_aws(api, method, region, cached=True, **kwargs):
