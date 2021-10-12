@@ -139,6 +139,9 @@ def query_aws(api, method, region, cached=True, **kwargs):
     elif api == 'sqs' and method == 'list_queues':
         # s3 list_buckets has no paginator. :/
         records = client.list_queues().get('QueueUrls', [])
+    elif api == 'elbv2' and method == 'describe_target_health':
+        # elbv2 describe_target_health has no paginator. :/
+        records = client.describe_target_health(TargetGroupArn=kwargs['TargetGroupArn'])
     else:
         # just use paginator for the method call
         paginator = client.get_paginator(method)
@@ -433,19 +436,40 @@ def process_elbsv2(region, nodes, edges):
             )
         )
 
-        # TODO v2 load balancers need to support target groups etc
-        # Add Edges - of dependent instances
-        # for instances in elb['Instances']:
-        #     edges.append(
-        #         new_edge(
-        #             from_type='elb',
-        #             from_name=name,
-        #             edge='depends',
-        #             to_type='ec2',
-        #             to_name=instances['InstanceId'],
-        #             weight=1
-        #         )
-        #     )
+
+        # TODO - this can likely come out to it's own top level
+        target_groups  = query_aws('elbv2',
+                                    'describe_target_groups', 
+                                    region,
+                                    # cached=False,
+                                    LoadBalancerArn=elb['LoadBalancerArn']
+                                    )
+
+        for target_group in target_groups['TargetGroups']:
+            print(target_group)
+
+            print(target_group['TargetGroupArn'])
+
+            # Loop over each target
+            target_healths = query_aws('elbv2',
+                                    'describe_target_health', 
+                                    region,
+                                    # cached=False,
+                                    TargetGroupArn=target_group['TargetGroupArn']
+                                    )
+            for target in target_healths['TargetHealthDescriptions']:
+                # Connect ELB to the target instance
+                edges.append(
+                    new_edge(
+                        from_type='elb',
+                        from_name=name,
+                        edge='depends',
+                        to_type='ec2',
+                        to_name=target['Target']['Id'],
+                        weight=1
+                    )
+                )
+
 
 def process_rds(region, nodes, edges):
     """
