@@ -25,49 +25,61 @@ var cy = window.cy = cytoscape({
     {
       selector: 'node[type = "ec2"]',
       css: {
-        'background-image': 'static/icons/Compute_AmazonEC2_instance_LARGE.png',
+        'background-image': 'static/icons_aws/Arch_Amazon-EC2_64.svg',
       }
     },
     {
       selector: 'node[type = "elb"]',
       css: {
-        'background-image': 'static/icons/Compute_ElasticLoadBalancing_ClassicLoadbalancer_LARGE.png',
+        'background-image': 'static/icons_aws/Arch_Elastic-Load-Balancing_64.svg',
+      }
+    },
+    {
+      selector: 'node[type = "elbv2"]',
+      css: {
+        'background-image': 'static/icons_aws/Arch_Elastic-Load-Balancing_64.svg',
       }
     },
     {
       selector: 'node[type = "cloudfront"]',
       css: {
-        'background-image': 'static/icons/NetworkingContentDelivery_AmazonCloudFront_LARGE.png',
+        'background-image': 'static/icons_aws/Arch_Amazon-CloudFront_64.svg',
       }
     },
     {
       selector: 'node[type = "rds"]',
       css: {
-        'background-image': 'static/icons/Database_AmazonRDS_DBinstance_LARGE.png',
+        'background-image': 'static/icons_aws/Arch_Amazon-RDS_64.svg',
       }
     },
     {
       selector: 'node[type = "asg"]',
       css: {
-        'background-image': 'static/icons/Compute_AmazonEC2_AutoScaling_LARGE.png',
+        'background-image': 'static/icons_aws/Arch_Amazon-Application-Auto-Scaling_64.svg',
       }
     },
     {
       selector: 'node[type = "elasticache"]',
       css: {
-        'background-image': 'static/icons/Database_AmazonElasticCache_cachenode_LARGE.png',
+        'background-image': 'static/icons_aws/Arch_Amazon-ElastiCache_64.svg',
       }
     },
      {
       selector: 'node[type = "s3"]',
       css: {
-        'background-image': 'static/icons/Storage_AmazonS3_bucketwithobjects_LARGE.png',
+        'background-image': 'static/icons_aws/Arch_Amazon-Simple-Storage-Service_64.svg',
       }
     },
      {
       selector: 'node[type = "sqs"]',
       css: {
-        'background-image': 'static/icons/Database_AmazonElasticCache_cachenode_LARGE.png',
+        'background-image': 'static/icons_aws/Arch_Amazon-Simple-Queue-Service_64.svg',
+      }
+    },
+     {
+      selector: 'node[type = "redshift"]',
+      css: {
+        'background-image': 'static/icons_aws/Arch_Amazon-Redshift_64.svg',
       }
     },
     {
