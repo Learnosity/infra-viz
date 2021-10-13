@@ -192,6 +192,8 @@ def process_dns_records(zone_id, region, nodes, edges):
                 )
             )
 
+            # Clamp dns weights to 1 or 0
+            weight = 1 if record.get('Weight', 1) > 0 else 0
             # add the edge value for the CNAME
             edges.append(
                 new_edge(
@@ -200,7 +202,7 @@ def process_dns_records(zone_id, region, nodes, edges):
                     edge='depends',
                     to_type='dns',
                     to_name=ns_alias if ns_alias else ns_value,
-                    weight=record.get('Weight', 1)
+                    weight=weight
                 )
             )
 

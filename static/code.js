@@ -100,6 +100,7 @@ var cy = window.cy = cytoscape({
       selector: 'edge[weight="0"]',
       css: {
         'line-style': 'dashed',
+        'line-color' : 'rgb(255,0,0)',
         'width': 1
       }
     },

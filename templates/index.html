@@ -96,11 +96,10 @@ function addElements(nodes,type){
                 cy.add(
                     { group: 'edges',
                          data: { 
-                                
                                 source: node['from_type'] +'_'+ node['from_name'],
                                 type: node['edge'],
                                 target: node['to_type'] +'_'+ node['to_name'],
-                                weight: 1
+                                weight: node['weight']
                     }});
                 break;
             default:
