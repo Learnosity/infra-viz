@@ -24,6 +24,14 @@ Browse to:
 http://127.0.0.1:5000
 
 
+## Setup
+
+You need a working Python3 environment.
+
+Install the dependencies
+$ pip install -r requirements.txt
+
+
 ## Roadmap
 
 ### Frontend/JS
