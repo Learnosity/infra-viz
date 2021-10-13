@@ -592,6 +592,27 @@ def process_redshift(region, nodes, edges):
                 region=region
             )
         )
+        # Add the DNS node for it
+        add_update_node(
+            nodes,
+            new_node(
+                type='dns',
+                name=name,
+                description=description,
+                region=region
+            )
+        )
+        # add an edge for the RDS to DNS link
+        edges.append(
+            new_edge(
+                from_type='dns',
+                from_name=name,
+                edge='depends',
+                to_type='redshift',
+                to_name=name,
+                weight=1
+            )
+        )
 
         # TODO - add redshift IP dns name and edges
 
