@@ -138,6 +138,12 @@ def query_aws(api, method, region, cached=True, **kwargs):
     if api == 's3' and method == 'list_buckets':
         # s3 list_buckets has no paginator. :/
         records = client.list_buckets().get('Buckets', [])
+    if api == 's3' and method == 'get_bucket_location':
+        # s3 get_bucket_location has no paginator. :/
+        records = client.get_bucket_location(Bucket=kwargs['Bucket']).get('LocationConstraint',None)
+        # Format the us-east-1 (aka VA) buckets to be correct.
+        if records is None:
+            records = "us-east-1"
     elif api == 'sqs' and method == 'list_queues':
         # s3 list_buckets has no paginator. :/
         records = client.list_queues().get('QueueUrls', [])
@@ -675,15 +681,67 @@ def process_s3(region, nodes, edges):
 
     for bucket in records:
         # logger.info('*****&* {}'.format(region))
+
+        #Get the bucket location
+        bucket_region = query_aws(
+            's3',
+            'get_bucket_location',
+            region,
+            Bucket=bucket['Name']
+        ) 
+
+        #Add the node or the S3 Domain
         add_update_node(
             nodes,
             new_node(
                 type='s3',
                 name=bucket['Name'],
                 description=bucket['Name'],
-                region='global'
+                region=bucket_region
             )
         )
+
+        # Build a DNS for the full bucket name
+        # protocol://service-code.region-code.amazonaws.com
+        # assets.learnosity.com.s3.amazonaws.com
+        full_bucket_names = []
+        
+        # Add fully qualified domain
+        full_bucket_names.append(f"{bucket['Name']}.s3.{bucket_region}.amazonaws.com")
+        # Add special case VA name
+        if bucket_region == 'us-east-1':
+            full_bucket_names.append(f"{bucket['Name']}.s3.amazonaws.com")
+
+        # If it's a domain name style (ie has at least 1 . in it) - then add that too.
+        if bucket['Name'].find('.') != -1:
+            full_bucket_names.append(bucket['Name'])
+
+        # Add DNS and links for each of these
+        for full_bucket_name in full_bucket_names:
+
+            # Add the DNS node for it
+            add_update_node(
+                nodes,
+                new_node(
+                    type='dns',
+                    name=full_bucket_name,
+                    description=full_bucket_name,
+                    region=bucket_region
+                )
+            )
+
+            # add an edge for the RDS to DNS link
+            edges.append(
+                new_edge(
+                    from_type='dns',
+                    from_name=full_bucket_name,
+                    edge='depends',
+                    to_type='s3',
+                    to_name=bucket['Name'],
+                    weight=1
+                )
+            )
+
 
 
 def main():
