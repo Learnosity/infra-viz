@@ -7,7 +7,6 @@ import json
 import csv
 from datetime import date, datetime
 from hashlib import sha1
-
 import boto3
 
 
@@ -347,6 +346,7 @@ def process_ec2s(region, nodes, edges):
             # )
 
             if instance.get('PublicIpAddress'):
+                # Add node for the public IP address
                 add_update_node(
                     nodes,
                     new_node(
@@ -356,7 +356,6 @@ def process_ec2s(region, nodes, edges):
                         region=region
                     )
                 )
-                
                 # add the public ip edge
                 edges.append(
                     new_edge(
@@ -388,7 +387,6 @@ def process_elbs(region, nodes, edges):
                 region=region
             )
         )
-
         # Add Edges - of dependent instances
         for instances in elb['Instances']:
             edges.append(
@@ -423,7 +421,6 @@ def process_elbsv2(region, nodes, edges):
                 region=region
             )
         )
-
         # Add the DNS node for it
         add_update_node(
             nodes,
@@ -433,7 +430,6 @@ def process_elbsv2(region, nodes, edges):
                 description='A',
             )
         )
-
         # add an edge for the RDS to DNS link
         edges.append(
             new_edge(
@@ -446,12 +442,10 @@ def process_elbsv2(region, nodes, edges):
             )
         )
 
-
         # TODO - this can likely come out to it's own top level
         target_groups  = query_aws('elbv2',
-                                    'describe_target_groups', 
+                                    'describe_target_groups',
                                     region,
-                                    # cached=False,
                                     LoadBalancerArn=elb['LoadBalancerArn']
                                     )
 
@@ -462,9 +456,8 @@ def process_elbsv2(region, nodes, edges):
 
             # Loop over each target
             target_healths = query_aws('elbv2',
-                                    'describe_target_health', 
+                                    'describe_target_health',
                                     region,
-                                    # cached=False,
                                     TargetGroupArn=target_group['TargetGroupArn']
                                     )
             for target in target_healths['TargetHealthDescriptions']:
@@ -507,7 +500,6 @@ def process_rds(region, nodes, edges):
                 region=region
             )
         )
-
         # Add the DNS node for it
         add_update_node(
             nodes,
@@ -518,7 +510,6 @@ def process_rds(region, nodes, edges):
                 region=region
             )
         )
-
         # add an edge for the RDS to DNS link
         edges.append(
             new_edge(
@@ -530,7 +521,6 @@ def process_rds(region, nodes, edges):
                 weight=1
             )
         )
-
 
 
 def process_asgs(region, nodes, edges):
@@ -546,7 +536,6 @@ def process_asgs(region, nodes, edges):
                 asg['AutoScalingGroupName']
             ]
         )
-
         add_update_node(
             nodes,
             new_node(
@@ -556,7 +545,6 @@ def process_asgs(region, nodes, edges):
                 region=region
             )
         )
-
         # connect any ELBs
         for elb in asg.get('LoadBalancerNames', []):
             edges.append(
@@ -569,7 +557,6 @@ def process_asgs(region, nodes, edges):
                     weight=1
                 )
             )
-
         # connect instances
         # Add Edges - of dependent instances
         for ec2 in asg.get('Instances', []):
@@ -609,6 +596,8 @@ def process_redshift(region, nodes, edges):
                 region=region
             )
         )
+
+        # TODO - add redshift IP dns name and edges
 
 
 def process_elasticache(region, nodes, edges):
@@ -690,8 +679,7 @@ def process_s3(region, nodes, edges):
             'get_bucket_location',
             region,
             Bucket=bucket['Name']
-        ) 
-
+        )
         #Add the node or the S3 Domain
         add_update_node(
             nodes,
@@ -707,7 +695,7 @@ def process_s3(region, nodes, edges):
         # protocol://service-code.region-code.amazonaws.com
         # assets.learnosity.com.s3.amazonaws.com
         full_bucket_names = []
-        
+
         # Add fully qualified domain
         full_bucket_names.append(f"{bucket['Name']}.s3.{bucket_region}.amazonaws.com")
         # Add special case VA name
@@ -731,7 +719,6 @@ def process_s3(region, nodes, edges):
                     region=bucket_region
                 )
             )
-
             # add an edge for the RDS to DNS link
             edges.append(
                 new_edge(
@@ -752,6 +739,7 @@ def main():
     nodes = {}
     edges = []
 
+    # TODO: This should come from config file
 
     region_list = [
         'us-west-1', 'us-west-2', 'us-east-1', 'eu-west-1', 'ap-southeast-2'
