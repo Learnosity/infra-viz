@@ -19,8 +19,6 @@ ch.setLevel(logging.DEBUG)
 
 logger.addHandler(ch)
 
-
-
 node_fields = [
     'type',
     'name',
@@ -279,8 +277,6 @@ def process_cloudfront(region, nodes, edges):
                     weight=1
                 )
             )
-
-
 
 
 def process_ec2s(region, nodes, edges):
