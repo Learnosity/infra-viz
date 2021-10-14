@@ -607,8 +607,6 @@ def process_redshift(region, nodes, edges):
             )
         )
 
-        # TODO - add redshift IP dns name and edges
-
 
 def process_elasticache(region, nodes, edges):
     """
@@ -646,6 +644,29 @@ def process_elasticache(region, nodes, edges):
                 region=region
             )
         )
+
+        # Add the DNS node for it
+        add_update_node(
+            nodes,
+            new_node(
+                type='dns',
+                name=name,
+                description=description,
+                region=region
+            )
+        )
+        # add an edge for the RDS to DNS link
+        edges.append(
+            new_edge(
+                from_type='dns',
+                from_name=name,
+                edge='depends',
+                to_type='elasticache',
+                to_name=name,
+                weight=1
+            )
+        )
+
 
 def process_sqs(region, nodes, edges):
     """
