@@ -82,6 +82,12 @@ var cy = window.cy = cytoscape({
         'background-image': 'static/icons_aws/Arch_Amazon-Redshift_64.svg',
       }
     },
+     {
+      selector: 'node[type = "opensearch"]',
+      css: {
+        'background-image': 'static/icons_aws/Arch_Amazon-OpenSearch-Service_64.svg',
+      }
+    },
     {
       selector: '$node > node',
       css: {

@@ -149,8 +149,14 @@ def query_aws(api, method, region, cached=True, **kwargs):
         if records is None:
             records = "us-east-1"
     elif api == 'sqs' and method == 'list_queues':
-        # s3 list_buckets has no paginator. :/
+        # sqs list_queues has no paginator. :/
         records = client.list_queues().get('QueueUrls', [])
+    elif api == 'opensearch' and method == 'list_domain_names':
+        # opensearch list_queues has no paginator. :/
+        records = client.list_domain_names().get('DomainNames', [])
+    elif api == 'opensearch' and method == 'describe_domains':
+        # opensearch describe_domains has no paginator. :/
+        records = client.describe_domains(DomainNames=kwargs['DomainNames']).get('DomainStatusList', [])
     elif api == 'elbv2' and method == 'describe_target_health':
         # elbv2 describe_target_health has no paginator. :/
         records = client.describe_target_health(TargetGroupArn=kwargs['TargetGroupArn'])
@@ -718,6 +724,74 @@ def process_sqs(region, nodes, edges):
             )
         )
 
+def process_opensearch(region, nodes, edges):
+    """
+    Find all the opensearch/elasticsearch clusters
+    """
+    records = query_aws(
+        'opensearch',
+        'list_domain_names',
+        region
+    )
+
+    domain_names = []
+    for record in records:
+        print(record)
+        domain_names.append(record['DomainName'])
+
+    # Get the domain details
+    records = query_aws(
+        'opensearch',
+        'describe_domains',
+        region,
+        DomainNames=domain_names
+    )
+
+    for opensearch in records:
+        name = opensearch['ARN']
+        description = ' '.join(
+            [
+                opensearch['DomainName'],
+                opensearch['ClusterConfig']['InstanceType'],
+                str(opensearch['ClusterConfig']['InstanceCount']),
+                opensearch['EngineVersion']
+            ]
+        )
+        endpoint = opensearch['Endpoints']['vpc']
+
+        add_update_node(
+            nodes,
+            new_node(
+                type='opensearch',
+                name=name,
+                description=description,
+                region=region
+            )
+        )
+
+        # Add the DNS node for it
+        add_update_node(
+            nodes,
+            new_node(
+                type='dns',
+                name=endpoint,
+                description=description,
+                region=region
+            )
+        )
+        # add an edge for the Cluster to DNS link
+        edges.append(
+            new_edge(
+                from_type='dns',
+                from_name=endpoint,
+                edge='depends',
+                to_type='opensearch',
+                to_name=name,
+                weight=1
+            )
+        )      
+
+
 
 def process_s3(region, nodes, edges):
     """
@@ -843,6 +917,8 @@ def main():
         process_elasticache(region, nodes, edges)
         process_asgs(region, nodes, edges)
         process_sqs(region, nodes, edges)
+        process_opensearch(region, nodes, edges)
+
 
         # TODO: Elastisearch
         # TODO: handle external DNS names - eg go.pardot.com etc.
