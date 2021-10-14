@@ -109,6 +109,13 @@ var cy = window.cy = cytoscape({
       }
     },
      {
+      selector: 'edge[type="replicates"]',
+      css: {
+        'line-color' : 'rgb(0,0,255)',
+        'width': 1
+      }
+    },
+     {
       selector: 'edge[weight="0"]',
       css: {
         'line-style': 'dashed',

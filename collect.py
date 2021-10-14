@@ -17,6 +17,8 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 # ch.setLevel(logging.INFO)
 
+account_id = None
+
 logger.addHandler(ch)
 
 node_fields = [
@@ -105,7 +107,12 @@ def add_update_node(existing_nodes,node):
         existing_nodes[node_name] = node
         existing_nodes[node_name]['counter'] = 1
 
+def get_aws_account_id():
+    global account_id
+    if account_id is None:
+        account_id = boto3.client("sts").get_caller_identity()["Account"]
 
+    return account_id
 
 def query_aws(api, method, region, cached=True, **kwargs):
     '''
@@ -470,7 +477,8 @@ def process_rds(region, nodes, edges):
     records = query_aws('rds', 'describe_db_instances', region)
 
     for rds in records.get('DBInstances'):
-        name = fmt_dns(rds.get('Endpoint', {}).get('Address'))
+        name = rds.get('DBInstanceArn',"")
+        dnsname = fmt_dns(rds.get('Endpoint', {}).get('Address'))
         description = ' '.join(
             [
                 rds['DBInstanceIdentifier'],
@@ -494,7 +502,7 @@ def process_rds(region, nodes, edges):
             nodes,
             new_node(
                 type='dns',
-                name=name,
+                name=dnsname,
                 description='A',
                 region=region
             )
@@ -503,7 +511,7 @@ def process_rds(region, nodes, edges):
         edges.append(
             new_edge(
                 from_type='dns',
-                from_name=name,
+                from_name=dnsname,
                 edge='depends',
                 to_type='rds',
                 to_name=name,
