@@ -645,6 +645,7 @@ def process_elasticache(region, nodes, edges):
     )
 
     for cache in records['CacheClusters']:
+        name = cache['ARN']
         description = ' '.join(
             [
                 cache['CacheClusterId'],
@@ -652,14 +653,6 @@ def process_elasticache(region, nodes, edges):
                 cache['Engine']
             ]
         )
-
-        if 'ConfigurationEndpoint' in cache:
-            name = cache.get('ConfigurationEndpoint', {}).get('Address')
-        else:
-            name = fmt_dns(
-                cache.get('CacheNodes', [{}])[0].get('Endpoint', {}).get('Address')
-            )
-
         add_update_node(
             nodes,
             new_node(
@@ -670,27 +663,37 @@ def process_elasticache(region, nodes, edges):
             )
         )
 
-        # Add the DNS node for it
-        add_update_node(
-            nodes,
-            new_node(
-                type='dns',
-                name=name,
-                description=description,
-                region=region
+        # Get all the DNS endpoints for cache
+        dns_endpoints = []
+        if 'ConfigurationEndpoint' in cache:
+            dns_endpoints.append(cache.get('ConfigurationEndpoint', {}).get('Address'))
+        
+        for cachenode in cache.get('CacheNodes', [{}]):
+            dns_endpoints.append(cachenode.get('Endpoint', {}).get('Address'))
+
+        # Link in each dns_endpoint
+        for endpoint in dns_endpoints:
+            # Add the DNS node for it
+            add_update_node(
+                nodes,
+                new_node(
+                    type='dns',
+                    name=endpoint,
+                    description=description,
+                    region=region
+                )
             )
-        )
-        # add an edge for the RDS to DNS link
-        edges.append(
-            new_edge(
-                from_type='dns',
-                from_name=name,
-                edge='depends',
-                to_type='elasticache',
-                to_name=name,
-                weight=1
+            # add an edge for the RDS to DNS link
+            edges.append(
+                new_edge(
+                    from_type='dns',
+                    from_name=endpoint,
+                    edge='depends',
+                    to_type='elasticache',
+                    to_name=name,
+                    weight=1
+                )
             )
-        )
 
 
 def process_sqs(region, nodes, edges):
