@@ -402,12 +402,9 @@ def process_elbsv2(region, nodes, edges):
     """
     records = query_aws('elbv2', 'describe_load_balancers', region, cached=False)
 
-    print("ELBS")
-    print(records)
     for elb in records['LoadBalancers']:
         name = fmt_dns(elb['DNSName'])
 
-        print(elb)
         add_update_node(
             nodes,
             new_node(
@@ -446,10 +443,6 @@ def process_elbsv2(region, nodes, edges):
                                     )
 
         for target_group in target_groups['TargetGroups']:
-            print(target_group)
-
-            print(target_group['TargetGroupArn'])
-
             # Loop over each target
             target_healths = query_aws('elbv2',
                                     'describe_target_health',
