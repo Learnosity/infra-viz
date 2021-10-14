@@ -519,6 +519,23 @@ def process_rds(region, nodes, edges):
             )
         )
 
+        replica_source = rds.get('ReadReplicaSourceDBInstanceIdentifier',None)
+        if replica_source:
+            # If not an ARN then make an ARN
+            if replica_source[0:4] != 'arn:':
+                account_id = get_aws_account_id()
+                replica_source = f"arn:aws:rds:{region}:{account_id}:db:{replica_source}"
+
+            edges.append(
+                new_edge(
+                    from_type='rds',
+                    from_name=replica_source,
+                    edge='replicates',
+                    to_type='rds',
+                    to_name=name,
+                    weight=1
+                )
+            )
 
 def process_asgs(region, nodes, edges):
     """
@@ -823,6 +840,9 @@ def main():
         process_elasticache(region, nodes, edges)
         process_asgs(region, nodes, edges)
         process_sqs(region, nodes, edges)
+
+        # TODO: Elastisearch
+        # TODO: handle external DNS names - eg go.pardot.com etc.
 
     write_csv(nodes.values(), nodes_filename, node_fields)
     write_csv(edges, edges_filename, edge_fields)
