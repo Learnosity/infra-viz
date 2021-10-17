@@ -466,11 +466,11 @@ def process_elbsv2(region, nodes, edges):
                 # Connect ELB to the target instance
                 edges.append(
                     new_edge(
-                        from_type='elb',
-                        from_name=name,
+                        from_type='ec2',
+                        from_name=target['Target']['Id'],
                         edge='depends',
-                        to_type='ec2',
-                        to_name=target['Target']['Id'],
+                        to_type='elb',
+                        to_name=name,
                         weight=1
                     )
                 )
@@ -582,11 +582,11 @@ def process_asgs(region, nodes, edges):
         for ec2 in asg.get('Instances', []):
             edges.append(
                 new_edge(
-                    from_type='asg',
-                    from_name=name,
+                    from_type='ec2',
+                    from_name=ec2.get('InstanceId'),
                     edge='depends',
-                    to_type='ec2',
-                    to_name=ec2.get('InstanceId'),
+                    to_type='asg',
+                    to_name=name,
                     weight=1
                 )
             )
@@ -919,8 +919,6 @@ def main():
         process_sqs(region, nodes, edges)
         process_opensearch(region, nodes, edges)
 
-
-        # TODO: Elastisearch
         # TODO: handle external DNS names - eg go.pardot.com etc.
 
     write_csv(nodes.values(), nodes_filename, node_fields)
