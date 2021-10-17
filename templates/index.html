@@ -88,7 +88,7 @@ function addElements(nodes,type){
                                 name: node['name'],
                                 type: node['type'],
                                 region: node['region'],
-                                weight: node['weight'] * 75
+                                // weight: node['weight'] * 75
                     }});
                 break;
             case "edges":
@@ -107,6 +107,27 @@ function addElements(nodes,type){
                 break;
         }
     }
+}
+
+
+function apply_importance_uniform(){
+    cy.$().forEach(function (item, index) {
+      item.data('importance',1);
+    });
+}
+function apply_importance_successor(){
+    cy.$().forEach(function (item, index) {
+      item.data('importance',item.data('successorcount'));
+    });
+}
+function apply_importance_predecessor(){
+    cy.$().forEach(function (item, index) {
+      item.data('importance',item.data('predecessorcount'));
+    });
+}
+
+function find_nodes_by_type(type){
+    cy.center(cy.nodes('[type = '+type+']')[0])
 }
 
 
