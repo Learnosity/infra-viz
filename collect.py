@@ -142,7 +142,7 @@ def query_aws(api, method, region, cached=True, **kwargs):
     if api == 's3' and method == 'list_buckets':
         # s3 list_buckets has no paginator. :/
         records = client.list_buckets().get('Buckets', [])
-    if api == 's3' and method == 'get_bucket_location':
+    elif api == 's3' and method == 'get_bucket_location':
         # s3 get_bucket_location has no paginator. :/
         records = client.get_bucket_location(Bucket=kwargs['Bucket']).get('LocationConstraint',None)
         # Format the us-east-1 (aka VA) buckets to be correct.
