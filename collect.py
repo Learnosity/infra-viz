@@ -171,6 +171,20 @@ def query_aws(api, method, region, cached=True, **kwargs):
     return records
 
 
+def check_external_service(dns_name):
+    '''
+    Checks for known external services
+    '''
+
+    #TODO: Make this is a proper dictionary lookup.
+    if dns_name.endswith('pardot.com'):
+        return "pardot.com"
+    if dns_name.endswith('zendesk.com'):
+        return "zendesk.com"
+
+    return None
+
+
 def process_dns_records(zone_id, region, nodes, edges):
     """
     Find nodes and edges in the DNS records
@@ -215,6 +229,39 @@ def process_dns_records(zone_id, region, nodes, edges):
                     weight=weight
                 )
             )
+
+
+            # Check if external service endpoint (returned None if not found)
+            external_service_name = check_external_service(ns_value)
+
+            # If an external service create a node for it.
+            if external_service_name is not None:
+                add_update_node(
+                    nodes,
+                    new_node(
+                        type='dns',
+                        name=ns_value,
+                        description=ns_type,
+                    )
+                )
+                add_update_node(
+                    nodes,
+                    new_node(
+                        type='externalservice',
+                        name=external_service_name,
+                        description=external_service_name
+                    )
+                )
+                edges.append(
+                    new_edge(
+                        from_type='dns',
+                        from_name=ns_value,
+                        edge='depends',
+                        to_type='externalservice',
+                        to_name=external_service_name,
+                        weight=1
+                    )
+                )
 
         if ns_type == 'A':
             # add edge node

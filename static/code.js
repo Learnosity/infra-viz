@@ -89,6 +89,12 @@ var cy = window.cy = cytoscape({
       }
     },
     {
+      selector: 'node[type = "externalservice"]',
+      css: {
+        'background-image': 'static/icons/cloud.png',
+      }
+    }, 
+    {
       selector: '$node > node',
       css: {
         'padding-top': '10px',
