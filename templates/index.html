@@ -127,8 +127,22 @@ function apply_importance_predecessor(){
 }
 
 function find_nodes_by_type(type){
-    cy.center(cy.nodes('[type = '+type+']')[0])
+    current_node = 0;
+    node_search = cy.nodes('[type = '+type+']')
+    
 }
+
+function next_node(){
+    current_node ++;
+    console.log(current_node);
+    cy.center([current_node]);
+}
+function prev_node(){
+    current_node --;
+    console.log(current_node);
+    cy.center([current_node]);
+}
+
 
 
 function dorender(){
