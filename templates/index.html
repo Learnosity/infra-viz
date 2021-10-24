@@ -66,12 +66,11 @@ function processEdges(edges){
         header: true,
         complete: function(results) {
             // console.log(results);
-            addElements(results.data,'edges')
-            dorender()
-        }
+            addElements(results.data,'edges');
+            dorender();
+        },
     });
 }
-
 
 
 /**
@@ -103,6 +102,10 @@ function addElements(nodes,type){
                 break;
             case "edges":
             //from_type,from_name,edge,to_type,to_name,weight
+                if(!node['from_type']){
+                    console.log("No from_type - skipping")
+                    break;
+                }
                 cy.add(
                     { group: 'edges',
                          data: { 
