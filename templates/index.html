@@ -18,12 +18,12 @@
 <button onclick="switchLayout('cose')">Cose</button> -->
 
 <div id="search">
-        <input type="text" name="search" id="searchtext" placeholder="Search Node Type">
-        <button name="searchbtn" id="searchbtn">Search</button>
-        <br>
-        <div id="searchcount"></div>
-        <button id="prevbtn">&lt;</button>
-        <button id="nextbtn">&gt;</button> 
+    <input type="text" name="search" id="searchtext" placeholder="Search Node Type">
+    <button name="searchbtn" id="searchbtn">Search</button>
+    <br>
+    <button id="prevbtn">&lt;</button>
+    <button id="nextbtn">&gt;</button> 
+    <span id="status"></span>
 </div>
 
 <div id="info"></div>
@@ -189,6 +189,10 @@ var node_navigator = function(){
         goto_node(current_node - 1);
     }
 
+    function get_status(){
+        return current_node + " / " + current_collection.length;
+    }
+
     return{
         get_node_types:get_node_types,
         add_node_type:add_node_type,
@@ -196,6 +200,7 @@ var node_navigator = function(){
         goto_node:goto_node,
         next_node:next_node,
         prev_node:prev_node,
+        get_status:get_status,
     }
 
 }();
@@ -206,16 +211,20 @@ document.getElementById('searchtext').addEventListener('keydown', function(e) {
     // console.log(e.keyCode);
     if(e.keyCode == 13) {
         node_navigator.find_nodes_by_type(document.getElementById('searchtext').value);
+        document.getElementById('status').innerHTML = node_navigator.get_status();
     }
 });
 document.getElementById('searchbtn').addEventListener('click', function (e) {
     node_navigator.find_nodes_by_type(document.getElementById('searchtext').value)
+        document.getElementById('status').innerHTML = node_navigator.get_status();
 });
 document.getElementById('prevbtn').addEventListener('click', function (e) {
     node_navigator.prev_node()
+    document.getElementById('status').innerHTML = node_navigator.get_status();
 });
 document.getElementById('nextbtn').addEventListener('click', function (e) {
     node_navigator.next_node()
+    document.getElementById('status').innerHTML = node_navigator.get_status();
 });
 
 
