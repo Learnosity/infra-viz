@@ -167,7 +167,20 @@ var cy = window.cy = cytoscape({
       css : {
         'background-color' : 'rgb(252,165,0)'
       }
-    }
+    },
+    {
+      selector: '.flash',
+      css: {
+        'border-color' : 'rgb(252,0,0)',
+        'border-width' : '3',
+        'border-opacity' : '0',
+        'transition-property': 'border-opacity',
+        'transition-duration': '3s',
+        'transition-timing-function': 'ease-in-out-quad',
+      }
+    },
+
+
   ],
 
   elements: elements,
