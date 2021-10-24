@@ -17,6 +17,15 @@
 <!-- <button onclick="switchLayout('dagre')">Dagre</button>
 <button onclick="switchLayout('cose')">Cose</button> -->
 
+<div id="search">
+        <input type="text" name="search" id="searchtext" placeholder="Search Node Type">
+        <button name="searchbtn" id="searchbtn">Search</button>
+        <br>
+        <div id="searchcount"></div>
+        <button id="prevbtn">&lt;</button>
+        <button id="nextbtn">&gt;</button> 
+</div>
+
 <div id="info"></div>
 
 <div id="content">Content Here:</div>
@@ -36,8 +45,6 @@ nodes='data/nodes.csv'
 edges='data/edges.csv'
 
 processNodes(nodes);
-
-
 
 
 function processNodes(nodes){
@@ -79,8 +86,11 @@ function addElements(nodes,type){
             case "nodes": 
                 //Skip blank nodes
                 if(node['name'] == undefined) continue;
-
-            // type,name,description,weight
+                
+                //Add node type counts
+                node_navigator.add_node_type(node['type']);
+                
+                // type,name,description,weight
                 cy.add(
                     { group: 'nodes', 
                         data: {
@@ -126,22 +136,90 @@ function apply_importance_predecessor(){
     });
 }
 
-function find_nodes_by_type(type){
-    current_node = 0;
-    node_search = cy.nodes('[type = '+type+']')
-    
-}
 
-function next_node(){
-    current_node ++;
-    console.log(current_node);
-    cy.center([current_node]);
-}
-function prev_node(){
-    current_node --;
-    console.log(current_node);
-    cy.center([current_node]);
-}
+// Node Navigator
+var node_navigator = function(){
+
+    var current_node = 0;
+    var current_collection = [];
+    var node_types = [];
+
+    function add_node_type(node_type){
+        if(node_types[node_type] == undefined){
+            node_types[node_type] = 0;
+        }else{
+            node_types[node_type]++;
+        }
+    }
+
+    function get_node_types(){
+        return node_types
+    }
+
+    function find_nodes_by_type(type){
+        console.log(type)
+        current_collection = cy.nodes('[type = "'+type+'"]')
+        console.log(current_collection.length);
+        // Reset node counter.
+
+        goto_node(0)
+    }
+
+    function goto_node(node_number){
+        if(node_number >= current_collection.length){
+            console.log("No next node. Current node: "+node_number);
+        }else if(node_number < 0){
+            console.log("No prev node. Current node: "+node_number);
+        }else{
+            current_node = node_number;
+        }
+
+        // console.log(current_node);
+        the_node = current_collection[current_node];
+        console.log(current_node + ' - ' + the_node.data('name'));
+        cy.center(current_collection[current_node]);
+        the_node.flashClass('flash',2000);
+    }
+
+    function next_node(){
+        goto_node(current_node + 1);
+    }
+
+    function prev_node(){
+        goto_node(current_node - 1);
+    }
+
+    return{
+        get_node_types:get_node_types,
+        add_node_type:add_node_type,
+        find_nodes_by_type:find_nodes_by_type,
+        goto_node:goto_node,
+        next_node:next_node,
+        prev_node:prev_node,
+    }
+
+}();
+
+// Add search handling code
+// console.log("Add keydown handler")
+document.getElementById('searchtext').addEventListener('keydown', function(e) {
+    // console.log(e.keyCode);
+    if(e.keyCode == 13) {
+        node_navigator.find_nodes_by_type(document.getElementById('searchtext').value);
+    }
+});
+document.getElementById('searchbtn').addEventListener('click', function (e) {
+    node_navigator.find_nodes_by_type(document.getElementById('searchtext').value)
+});
+document.getElementById('prevbtn').addEventListener('click', function (e) {
+    node_navigator.prev_node()
+});
+document.getElementById('nextbtn').addEventListener('click', function (e) {
+    node_navigator.next_node()
+});
+
+
+
 
 
 
@@ -289,7 +367,6 @@ function dorender(){
     // cy.nodes().on('click', function(evt){
     //   console.log( 'tap ' + evt.target.id() );
     // });
-
 
 
     cy.on('tap', function(event){
