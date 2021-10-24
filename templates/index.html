@@ -181,6 +181,7 @@ var node_navigator = function(){
             current_node = node_number;
         }
 
+        cy.zoom(1);
         // console.log(current_node);
         the_node = current_collection[current_node];
         console.log(current_node + ' - ' + the_node.data('name'));
