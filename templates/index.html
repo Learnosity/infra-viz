@@ -163,16 +163,23 @@ var node_navigator = function(){
         console.log(type)
         current_collection = cy.nodes('[type = "'+type+'"]')
         console.log(current_collection.length);
-        // Reset node counter.
-        goto_node(0)
+        // If we found something then go first node
+        if(current_collection.length)
+            goto_node(0)
     }
 
     function find_nodes_by_name(name){
-        console.log(name)
-        current_collection = cy.nodes('[name *= "'+name+'"]')
-        console.log(current_collection.length);
-        // Reset node counter.
-        goto_node(0)
+        // console.log(name);
+        name = name.toLowerCase();
+
+        // Do a case insensitive search/filter
+        current_collection = cy.filter(function(element, i){
+            return element.isNode() && String(element.data('name')).toLowerCase().indexOf(name) != -1
+        });
+
+        // If we found something then go first node
+        if(current_collection.length)
+            goto_node(0)
     }
 
     function goto_node(node_number){
