@@ -183,10 +183,17 @@ var node_navigator = function(){
     }
 
     function goto_node(node_number){
+        if(current_collection.length == 0){
+            console.log("No search results");
+            return;
+        }
+
         if(node_number >= current_collection.length){
             console.log("No next node. Current node: "+node_number);
+            return;
         }else if(node_number < 0){
             console.log("No prev node. Current node: "+node_number);
+            return;
         }else{
             current_node = node_number;
         }
@@ -208,6 +215,8 @@ var node_navigator = function(){
     }
 
     function get_status(){
+        if(current_collection.length == 0) return "No Results"
+
         return current_node + 1 + " / " + current_collection.length;
     }
 
