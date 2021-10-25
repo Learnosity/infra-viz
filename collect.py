@@ -7,8 +7,8 @@ import json
 import csv
 from datetime import date, datetime
 from hashlib import sha1
+import botocore
 import boto3
-
 
 logger = logging.getLogger('main')
 logger.setLevel(logging.DEBUG)
@@ -148,6 +148,13 @@ def query_aws(api, method, region, cached=True, **kwargs):
         # Format the us-east-1 (aka VA) buckets to be correct.
         if records is None:
             records = "us-east-1"
+    elif api == 's3' and method == 'get_bucket_website':
+        # s3 list_buckets has no paginator. :/
+        try:
+            records = client.get_bucket_website(Bucket=kwargs['Bucket'])
+        except botocore.exceptions.ClientError as error:
+            # boto3.exceptions.ClientError.NoSuchWebsiteConfiguration:
+            records = {}
     elif api == 'sqs' and method == 'list_queues':
         # sqs list_queues has no paginator. :/
         records = client.list_queues().get('QueueUrls', [])
@@ -860,6 +867,9 @@ def process_s3(region, nodes, edges):
             region,
             Bucket=bucket['Name']
         )
+
+
+
         #Add the node or the S3 Domain
         add_update_node(
             nodes,
@@ -910,6 +920,76 @@ def process_s3(region, nodes, edges):
                     weight=1
                 )
             )
+
+        # Check if the is a website configuration for this - if so then link it in
+        bucket_website = query_aws(
+            's3',
+            'get_bucket_website',
+            region,
+            Bucket=bucket['Name']
+        )
+        
+        if bucket_website != {}:
+
+            # S3 Website domain names from here:
+            # https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
+            s3_website_regions = {
+                "us-east-1": "s3-website-us-east-1.amazonaws.com",
+                "us-east-2": "s3-website.us-east-1.amazonaws.com",
+                "us-west-1": "s3-website-us-west-1.amazonaws.com",
+                "us-west-2": "s3-website-us-west-2.amazonaws.com",
+                "us-east-1": "s3-website-us-east-1.amazonaws.com",
+                "af-south-1":"s3-website.af-south-1.amazonaws.com",
+                "ap-east-1":"s3-website.ap-east-1.amazonaws.com",
+                "ap-south-1":"s3-website.ap-south-1.amazonaws.com",
+                "ap-northeast-3":"s3-website.ap-northeast-3.amazonaws.com",
+                "ap-northeast-2":"s3-website.ap-northeast-2.amazonaws.com",
+                "ap-southeast-1":"s3-website-ap-southeast-1.amazonaws.com",
+                "ap-southeast-2":"s3-website-ap-southeast-2.amazonaws.com",
+                "ap-northeast-1":"s3-website-ap-northeast-1.amazonaws.com",
+                "ca-central-1":"s3-website.ca-central-1.amazonaws.com",
+                "cn-northwest-1.amazonaws.com.cn":"s3-website.cn-northwest-1.amazonaws.com.cn",
+                "eu-central-1":"s3-website.eu-central-1.amazonaws.com",
+                "eu-west-1":"s3-website-eu-west-1.amazonaws.com",
+                "eu-west-2":"s3-website.eu-west-2.amazonaws.com",
+                "eu-south-1":"s3-website.eu-south-1.amazonaws.com",
+                "eu-west-3":"s3-website.eu-west-3.amazonaws.com",
+                "eu-north-1":"s3-website.eu-north-1.amazonaws.com",
+                "me-south-1":"s3-website.me-south-1.amazonaws.com",
+                "sa-east-1":"s3-website-sa-east-1.amazonaws.com",
+                "us-gov-east-1":"s3-website.us-gov-east-1.amazonaws.com",
+                "us-gov-west-1":"s3-website-us-gov-west-1.amazonaws.com",
+            }
+
+            s3_website_host = f"{bucket['Name']}.{s3_website_regions.get(bucket_region,'UNKNOWN_REGION')}"
+
+            # Add the DNS node for it
+            add_update_node(
+                nodes,
+                new_node(
+                    type='dns',
+                    name=s3_website_host,
+                    description=s3_website_host,
+                    region=bucket_region
+                )
+            )
+            # add an edge for the RDS to DNS link
+            edges.append(
+                new_edge(
+                    from_type='dns',
+                    from_name=s3_website_host,
+                    edge='depends',
+                    to_type='s3',
+                    to_name=bucket['Name'],
+                    weight=1
+                )
+            )
+
+        
+        # Check if it's a redirector 
+        # if(bucket_website.get('RedirectAllRequestsTo',{}).get('HostName'),None):
+            # TODO Add DNS Node
+            # TODO dd Edge node
 
 
 
