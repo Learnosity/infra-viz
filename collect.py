@@ -187,7 +187,34 @@ def check_external_service(dns_name):
     if dns_name.endswith('pardot.com'):
         return "pardot.com"
     if dns_name.endswith('zendesk.com'):
-        return "zendesk.com"
+        return "Zendesk.com"
+
+    # Certs
+    if dns_name.endswith('acm-validations.aws'):
+        return "AWS Certs"
+    if dns_name.endswith('comodoca.com'):
+        return "Comodo CA"
+    if dns_name.endswith('sectigo.com'):
+        return "Sectigo CA"
+
+    # Google
+    if dns_name.endswith('ghs.google.com'):
+        return "Google Hosted"
+    if dns_name.endswith('googlehosted.com'):
+        return "Google Hosted"
+
+
+    if dns_name.endswith('dkim.amazonses.com'):
+        return "dkim.amazonses.com"
+
+    if dns_name.endswith('azurewebsites.net'):
+        return "azurewebsites.net"
+    
+    if dns_name.endswith('stspg-customer.com'):
+        return "Status Page"
+
+
+
 
     return None
 
