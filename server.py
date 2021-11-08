@@ -2,17 +2,18 @@ from flask import Flask, render_template, send_from_directory
 
 app = Flask(__name__)
 
-port=5000
-host='0.0.0.0'
+PORT=5001
+HOST='0.0.0.0'
 
 @app.route('/')
 def index():
-     return render_template('index.html')
-
+    ''' Render the index page '''
+    return render_template('index.html')
 
 
 @app.route('/data/<path:path>')
 def send_data(path):
+    ''' Method to handle static files to be returned '''
     return send_from_directory('data', path)
 
 
@@ -20,4 +21,4 @@ def send_data(path):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host=host, port=port)
+    app.run(debug=True, host=HOST, port=PORT)
