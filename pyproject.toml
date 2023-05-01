@@ -8,7 +8,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.9"
 boto3 = "^1.19.12"
-Flask = "^2.0.2"
+Flask = "^2.3.2"
 
 [tool.poetry.dev-dependencies]
 
